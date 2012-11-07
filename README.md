@@ -2,20 +2,19 @@ Org-Mode to Confluence exporter
 ===============================
 
 Cobbled together from various pieces of org-mm.el and org-mw.el with a
-hint of org-odt.el, All taken from the current org-mode trunk at
+hint of org-odt.el, All taken from the circa-7.7 org-mode trunk at
 git://repo.or.cz/org-mode.git.
 
 I would feel embarrassed to claim any copyright on this.
 
-
 Installation
 ------------
 
-Get a version of org-mode. It is possible to use the latest version of
-org-mode from git://repo.or.cz/org-mode.git, but the 7.7 release works too. 
+Get a release of org-mode >= 7.9, or the latest one from
+git://orgmode.org/org-mode.git.
 
 Install it and make sure that your emacs has access to the
-org-export.el file (which is is EXPERIMENTAL). Or use the one provided here.
+org-export.el file that's part of org-mode.
 
 Copy org-confluence.el onto the load path of the emacs installation.
 
@@ -50,9 +49,3 @@ What would be cool
 
 - Integration with http://code.google.com/p/confluence-el/
 - reformat existing text blocks to be lines without breaks (confluence likes it this way).
-
-
-
-
-
-
