@@ -6,22 +6,12 @@
 ;; Put this file into your load-path and the following into your ~/.emacs:
 ;;	 (require 'org-confluence)
 ;;
-;; Export Org files to confluence: M-x org-confluence-export RET
+;; Export Org files to confluence: M-x org-e-confluence-export-as-confluence RET
 ;;
 ;;; Code:
 
 (require 'org-export)
 (require 'org-e-ascii)
-(require 'format-spec)
-
-(defvar org-confluence-emphasis-alist
-  '(("*" "*%s*" nil)
-	("/" "_%s_" nil)
-	("_" "+%s+" nil)
-	("+" "-%s-" nil)
-	("~" "\{\{%s\}\}" nil)
-	("=" "\{\{%s\}\}" nil))
-  "The list of fontification expressions for confluence.")
 
 (setq org-confluence-link-analytic-regexp
 	(concat
@@ -32,37 +22,93 @@
 	 "\\(\\[" "\\([^]]+\\)" "\\]\\)?"
 	 "\\]"))
 
-
+;; Define the backend itself
 (org-export-define-derived-backend e-confluence e-ascii
-  :translate-alist ((bold . org-e-confluence-bold)))
-;;                      (code . org-e-confluence-code)))
-;;                    (headline . org-e-confluence-headline)))
+  :translate-alist ((bold . org-e-confluence-bold)
+                    (example-block . org-e-confluence-src-block)
+                    (fixed-width . org-e-confluence-fixed-width)
+                    (footnote-definition . org-e-confluence-empty)
+                    (footnote-reference . org-e-confluence-empty)
+                    (headline . org-e-confluence-headline)
+                    (italic . org-e-confluence-italic)
+                    (link . org-e-confluence-link)
+                    (src-block . org-e-confluence-src-block)
+                    (strike-through . org-e-confluence-strike-through)
+                    (table . org-e-confluence-table)
+                    (table-cell . org-e-confluence-table-cell)
+                    (table-row . org-e-confluence-table-row)
+                    (template . org-e-confluence-template)
+                    (underline . org-e-confluence-underline)))
+
+;; All the functions we use
+(defun org-e-confluence-empty (empy contents info)
+  "")
+
+(defun org-e-confluence-table (table contents info)
+  contents)
+
+(defun org-e-confluence-table-row  (table-row contents info)
+  (concat 
+   (if (org-string-nw-p contents) (format "|%s" contents)
+     "")
+   (when (org-export-table-row-ends-header-p table-row info)
+     "|")))
+
+(defun org-e-confluence-table-cell  (table-cell contents info)
+  (let ((table-row (org-export-get-parent table-cell)))
+    (concat
+     (when (org-export-table-row-starts-header-p table-row info)
+       "|")
+     contents "|")))
+
+(defun org-e-confluence-template (contents info)
+  (let ((depth (plist-get info :with-toc)))
+    (concat (when depth "\{toc\}\n\n") contents)))
 
 (defun org-e-confluence-bold (bold contents info)
-  (format "FOO %s FOO" contents))
+  (format "*%s*" contents))
 
-(defun org-e-confluence-code (code contents info)
-  (format "<code>%s</code>" contents))
+(defun org-e-confluence-italic (italic contents info)
+  (format "_%s_" contents))
+
+(defun org-e-confluence-strike-through (strike-through contents info)
+  (format "-%s-" contents))
+
+(defun org-e-confluence-underline (underline contents info)
+  (format "+%s+" contents))
+
+(defun org-e-confluence-fixed-width (fixed-width contents info)
+  (format "\{\{%s\}\}" contents))
+
+(defun org-e-confluence-link (link desc info)
+  (let ((raw-link (org-element-property :raw-link link)))
+    (if (not (org-string-nw-p desc)) (format "[%s]" raw-link)
+      (format "[%s|%s]" desc raw-link))))
 
 (defun org-e-confluence-headline (headline contents info)
-  (setq contents (or contents ""))
-  (let* ((numberedp (org-export-numbered-headline-p headline info))
-	 (level (org-export-get-relative-level headline info))
-	 (text (org-export-data (org-element-property :title headline) info))
-	 (todo (and (plist-get info :with-todo-keywords)
-		    (let ((todo (org-element-property :todo-keyword headline)))
-		      (and todo (org-export-data todo info)))))
-	 (todo-type (and todo (org-element-property :todo-type headline)))
-	 (tags (and (plist-get info :with-tags)
-		    (org-export-get-tags headline info)))
-	 (priority (and (plist-get info :with-priority)
-			(org-element-property :priority headline)))
-	 (section-number (and (org-export-numbered-headline-p headline info)
-			      (mapconcat 'number-to-string
-					 (org-export-get-headline-number
-					  headline info) "."))))
-    (format "h%s. %s\n" level contents)))
+  (let ((low-level-rank (org-export-low-level-p headline info))
+        (text (org-export-data (org-element-property :title headline) 
+                               info))
+        (level (org-export-get-relative-level headline info)))
+    ;; Else: Standard headline.
+    (format "h%s. %s\n%s" level text
+            (if (org-string-nw-p contents) contents 
+              ""))))
 
+(defun org-e-confluence-src-block (src-block contents info)
+  (let* ((lang (org-element-property :language src-block))
+         (language (if (string= lang "sh") "bash" ;; FIXME: provide a mapping of some sort
+                     lang))
+         (code-info (org-export-unravel-code src-block))
+         (code (car code-info)))
+    (concat "\{code"
+            (when lang (format ":%s" language))
+            "|theme=Emacs" ;; FIXME: provide a user-controlled variable
+            "}\n"
+            code
+            "\{code\}\n")))
+
+;; main interactive entrypoint
 (defun org-e-confluence-export-as-confluence
   (&optional subtreep visible-only body-only ext-plist)
   "Export current buffer to a text buffer.
@@ -96,143 +142,5 @@ is non-nil."
     (with-current-buffer outbuf (text-mode))
     (when org-export-show-temporary-export-buffer
       (switch-to-buffer-other-window outbuf))))
-
-;; (defun org-confluence-export ()
-;;   "Export the current buffer to Confluence."
-;;   (interactive)
-;;   (setq org-export-current-backend 'confluence)
-;;   (org-export-set-backend "confluence")
-;;   (org-export-render))
-
-;; (defun org-confluence-export-header ()
-;;   "Export the header part."
-;;   (let* ((p (org-combine-plists (org-infile-export-plist)
-;;                                 org-export-properties)))
-;;     (if (plist-get p :table-of-contents)
-;;         (insert "\{toc\}\n"))))
-
-;; (defun org-confluence-export-first-lines (first-lines)
-;;   "Export first lines."
-;;   (insert (org-export-render-content first-lines) "\n")
-;;   (goto-char (point-max)))
-
-;; (defun org-confluence-export-heading (section-properties)
-;;   "Export confluence heading"
-;;   (let* ((p section-properties)
-;; 	 (h (plist-get p :heading))
-;; 	 (s (plist-get p :level)))
-;; 	(insert (format "h%s. %s\n" s h ))))
-
-;; (defun org-confluence-export-quote-verse-center ()
-;;   "Export #+BEGIN_QUOTE/VERSE/CENTER environments."
-;;   (let (rpl e)
-;;     (while (re-search-forward "^[ \t]*ORG-\\([A-Z]+\\)-\\(START\\|END\\).*$" nil t)
-;;       (replace-match "" t))))
-
-;; (defun org-confluence-export-links ()
-;;   "Replace Org links with confluence links."
-;;   ;; FIXME: This function could be more clever, of course.
-;;   (while (re-search-forward org-confluence-link-analytic-regexp nil t)
-;; 	(cond ((and (equal (match-string 1) "file:")
-;;                 (save-match-data
-;;                   (string-match (org-image-file-name-regexp) (match-string 3))))
-;;            (replace-match  (concat "!" (file-name-nondirectory (match-string 3)))))
-;;           ((equal (match-string 1) "confluence:")
-;;            (replace-match (concat "[\\3]")))
-;;           (t 
-;;            (replace-match (concat "[" (if (match-string 5) "\\5|" "") "\\1\\3]"))))))
-
-;; (defun org-confluence-format-source-code-or-example (lines lang caption textareap
-;;                                                            cols rows num cont
-;;                                                            rpllbl fmt)
-;;   "format source and example blocks"
-;;   (concat "\{code}\n"
-;;           (concat
-;;            (mapconcat
-;; 			(lambda (l) l)
-;; 			(org-split-string lines "\n")
-;; 			"\n")
-;;            "\n\{code\}\n")
-;;           ))
-
-;; (defun org-confluence-export-lists ()
-;;   "Export lists to Confluence syntax."
-;;   (while (re-search-forward (org-item-beginning-re) nil t)
-;; 	(move-beginning-of-line 1)
-;; 	(insert (org-list-to-generic
-;; 		 (org-list-parse-list t)
-;; 		 (org-combine-plists
-;; 		  '(:splice nil 
-;; 			:ostart "" :oend ""
-;; 			:ustart "" :uend ""
-;; 			:dstart "" :dend ""
-;; 			:dtstart "" :dtend ""
-;; 			:istart (concat
-;; 					 (make-string 
-;; 					  (1+ depth) (if (eq type 'unordered) ?* ?#)) " ")
-;; 			:iend ""
-;;             :isep "\n"
-;; 			:icount nil
-;; 			:csep "\n"
-;; 			:cbon "[X]" :cboff "[ ]"
-;; 			:cbtrans "[-]"))))))
-
-;; (defun org-confluence-export-tables ()
-;;   "Convert tables in the current buffer to confluence tables."
-;;   (while (re-search-forward "^\\([ \t]*\\)|" nil t)
-;; 	(org-if-unprotected-at (1- (point))
-;; 	  (org-table-align)
-;; 	  (let* ((beg (org-table-begin))
-;; 			 (end (org-table-end))
-;; 			 (raw-table (buffer-substring beg end)) lines)
-;; 	(setq lines (org-split-string raw-table "\n"))
-;; 	(apply 'delete-region (list beg end))
-;; 	(when org-export-table-remove-special-lines
-;; 	  (setq lines (org-table-clean-before-export lines 'maybe-quoted)))
-;; 	(setq lines
-;; 		  (mapcar
-;; 		   (lambda(elem)
-;; 		 (or (and (string-match "[ \t]*|-+" elem) 'hline)
-;; 			 (org-split-string (org-trim elem) "|")))
-;; 		   lines))
-;; 	(insert (orgtbl-to-confluence lines nil))))))
-
-;; (defun orgtbl-to-confluence (table params)
-;;   "Convert TABLE into a confluence table."
-;;   (let ((params2 (list
-;; 		  :lstart "| "
-;; 		  :lend " |"
-;; 		  :sep " | "
-;; 		  :hlstart "|| "
-;;           :hllstart "|| "
-;; 		  :hlend " ||"
-;; 		  :hlsep " || "
-;; 		  )))
-;; 	(orgtbl-to-generic table (org-combine-plists params2 params))))
-
-;; (defun org-confluence-export-fonts ()
-;;   "Export fontification."
-;;   (while (re-search-forward org-emph-re nil t)
-;;     (let* ((emph (assoc (match-string 3) org-confluence-emphasis-alist))
-;; 	   (beg (match-beginning 0))
-;; 	   (begs (match-string 1))
-;; 	   (end (match-end 0))
-;; 	   (ends (match-string 5))
-;; 	   (rpl (format (cadr emph) (match-string 4))))
-;;       (delete-region beg end)
-;;       (insert begs rpl ends)))
-  
-    
-;; )
-
-;; ;; Various empty function for org-export.el to work:
-;; (defun org-confluence-export-footer () "")
-;; (defun org-confluence-export-section-beginning (section-properties) "")
-;; (defun org-confluence-export-section-end (section-properties) "")
-;; (defun org-confluence-export-footnotes () "")
-
-;; (defun org-export-confluence-preprocess (parameters)
-;;   "Do extra work for Confluence export."
-;;   nil)
 
 (provide 'org-e-confluence)
