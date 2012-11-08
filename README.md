@@ -54,4 +54,5 @@ Copyright
 ---------
 
 Copyright 2012 Sébastien Delafond
+
 Copyright 2012 Henning Schmiedehausen
