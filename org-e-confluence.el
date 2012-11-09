@@ -66,7 +66,7 @@
             (when (org-string-nw-p desc) (format "%s|" desc))
             (cond
              ((string-match "^confluence:" raw-link)
-              (replace-regexp-in-string ".+?:" "" raw-link))
+              (replace-regexp-in-string "^confluence:" "" raw-link))
              (t
               raw-link))
             "]")))
