@@ -109,10 +109,8 @@
   (format "+%s+" contents))
 
 (defun org-e-confluence--block (language theme contents)
-  (concat "\{code"
-          (when language (format ":%s" language))
-          "|theme="
-          theme
+  (concat "\{code:theme=" theme
+          (when language (format "|language=%s" language))
           "}\n"
           contents
           "\{code\}\n"))
