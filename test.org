@@ -1,4 +1,4 @@
-* Headline 1
+* Text & Lists
 ** Text
    normal
    *bold*
@@ -16,7 +16,7 @@
    1. foo
    2. bar
    3. baz
-* Headline 2
+* Links & Tables
 ** External links
    [[http://org-mode.org][org-mode]]
    [[http://gnu.org][GNU]]
@@ -27,7 +27,7 @@
    |---------+---------+---------|
    | a       | b       | c       |
    | d       | e       | f       |
-* Headline 3
+* Source & Examples
 ** Bash
 #+BEGIN_SRC sh
 ls
