@@ -32,3 +32,9 @@ for i in $(seq 100) ; do
   echo $i
 done
 #+END_SRC
+** Example
+#+BEGIN_EXAMPLE
+foo
+bar
+baz
+#+END_EXAMPLE

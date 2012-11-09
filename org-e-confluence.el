@@ -25,7 +25,7 @@
 ;; Define the backend itself
 (org-export-define-derived-backend e-confluence e-ascii
   :translate-alist ((bold . org-e-confluence-bold)
-                    (example-block . org-e-confluence-src-block)
+                    (example-block . org-e-confluence-example-block)
                     (fixed-width . org-e-confluence-fixed-width)
                     (footnote-definition . org-e-confluence-empty)
                     (footnote-reference . org-e-confluence-empty)
@@ -41,8 +41,48 @@
                     (underline . org-e-confluence-underline)))
 
 ;; All the functions we use
+(defun org-e-confluence-bold (bold contents info)
+  (format "*%s*" contents))
+
 (defun org-e-confluence-empty (empy contents info)
   "")
+
+(defun org-e-confluence-example-block (example-block contents info)
+  ;; FIXME: provide a user-controlled variable for theme
+  (let ((content (org-export-format-code-default example-block info)))
+    (org-e-confluence--block "none" "Confluence" content)))
+              
+(defun org-e-confluence-italic (italic contents info)
+  (format "_%s_" contents))
+
+(defun org-e-confluence-fixed-width (fixed-width contents info)
+  (format "\{\{%s\}\}" contents))
+
+(defun org-e-confluence-headline (headline contents info)
+  (let ((low-level-rank (org-export-low-level-p headline info))
+        (text (org-export-data (org-element-property :title headline) 
+                               info))
+        (level (org-export-get-relative-level headline info)))
+    ;; Else: Standard headline.
+    (format "h%s. %s\n%s" level text
+            (if (org-string-nw-p contents) contents 
+              ""))))
+
+(defun org-e-confluence-link (link desc info)
+  (let ((raw-link (org-element-property :raw-link link)))
+    (if (not (org-string-nw-p desc)) (format "[%s]" raw-link)
+      (format "[%s|%s]" desc raw-link))))
+
+(defun org-e-confluence-src-block (src-block contents info)
+  ;; FIXME: provide a user-controlled variable for theme
+  (let* ((lang (org-element-property :language src-block))
+         (language (if (string= lang "sh") "bash" ;; FIXME: provide a mapping of some sort
+                     lang))
+         (content (org-export-format-code-default src-block info)))
+    (org-e-confluence--block language "Emacs" content)))
+
+(defun org-e-confluence-strike-through (strike-through contents info)
+  (format "-%s-" contents))
 
 (defun org-e-confluence-table (table contents info)
   contents)
@@ -65,48 +105,17 @@
   (let ((depth (plist-get info :with-toc)))
     (concat (when depth "\{toc\}\n\n") contents)))
 
-(defun org-e-confluence-bold (bold contents info)
-  (format "*%s*" contents))
-
-(defun org-e-confluence-italic (italic contents info)
-  (format "_%s_" contents))
-
-(defun org-e-confluence-strike-through (strike-through contents info)
-  (format "-%s-" contents))
-
 (defun org-e-confluence-underline (underline contents info)
   (format "+%s+" contents))
 
-(defun org-e-confluence-fixed-width (fixed-width contents info)
-  (format "\{\{%s\}\}" contents))
-
-(defun org-e-confluence-link (link desc info)
-  (let ((raw-link (org-element-property :raw-link link)))
-    (if (not (org-string-nw-p desc)) (format "[%s]" raw-link)
-      (format "[%s|%s]" desc raw-link))))
-
-(defun org-e-confluence-headline (headline contents info)
-  (let ((low-level-rank (org-export-low-level-p headline info))
-        (text (org-export-data (org-element-property :title headline) 
-                               info))
-        (level (org-export-get-relative-level headline info)))
-    ;; Else: Standard headline.
-    (format "h%s. %s\n%s" level text
-            (if (org-string-nw-p contents) contents 
-              ""))))
-
-(defun org-e-confluence-src-block (src-block contents info)
-  (let* ((lang (org-element-property :language src-block))
-         (language (if (string= lang "sh") "bash" ;; FIXME: provide a mapping of some sort
-                     lang))
-         (code-info (org-export-unravel-code src-block))
-         (code (car code-info)))
-    (concat "\{code"
-            (when lang (format ":%s" language))
-            "|theme=Emacs" ;; FIXME: provide a user-controlled variable
-            "}\n"
-            code
-            "\{code\}\n")))
+(defun org-e-confluence--block (language theme contents)
+  (concat "\{code"
+          (when language (format ":%s" language))
+          "|theme="
+          theme
+          "}\n"
+          contents
+          "\{code\}\n"))
 
 ;; main interactive entrypoint
 (defun org-e-confluence-export-as-confluence
