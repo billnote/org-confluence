@@ -20,8 +20,9 @@
 ** External links
    [[http://org-mode.org][org-mode]]
    [[http://gnu.org][GNU]]
-** Internal link
+** Internal links
    [[confluence:OtherPage][Confluence page]]
+   [[confluence:Space:Page][Page in another space]]
 ** Table
    | field 1 | field 2 | field 3 |
    |---------+---------+---------|

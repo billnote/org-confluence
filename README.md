@@ -30,8 +30,9 @@ What it does
 
 - bold, italics, underline, strikethrough and monospaced text
 - headings
-- links
-- BLOCK_SRC and BLOCK_EXAMPLE to code blocks
+- "internal" Confluence links with `confluence:Space:Page` notation
+- external links
+- BLOCK_SRC and BLOCK_EXAMPLE to code blocks (with different theme)
 - lists (unnumbered and numbered)
 - tables (header lines, body lines)
 
@@ -40,7 +41,6 @@ That is, exactly everything that's used in test.org.
 What it does not
 ----------------
 
-- support Confluence internal links with `confluence:Space:Page` notation
 - everything else
 
 
@@ -54,5 +54,5 @@ Copyright
 ---------
 
 Copyright 2012 Sébastien Delafond
-
+\\
 Copyright 2012 Henning Schmiedehausen
