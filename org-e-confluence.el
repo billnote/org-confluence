@@ -13,15 +13,6 @@
 (require 'org-export)
 (require 'org-e-ascii)
 
-(setq org-confluence-link-analytic-regexp
-	(concat
-	 "\\[\\["
-	 "\\(\\(" (mapconcat 'regexp-quote (cons "confluence" org-link-types) "\\|") "\\):\\)?"
-	 "\\([^]]+\\)"
-	 "\\]"
-	 "\\(\\[" "\\([^]]+\\)" "\\]\\)?"
-	 "\\]"))
-
 ;; Define the backend itself
 (org-export-define-derived-backend e-confluence e-ascii
   :translate-alist ((bold . org-e-confluence-bold)
