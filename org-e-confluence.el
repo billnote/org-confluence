@@ -23,6 +23,7 @@
                     (headline . org-e-confluence-headline)
                     (italic . org-e-confluence-italic)
                     (link . org-e-confluence-link)
+                    (section . org-e-confluence-section)
                     (src-block . org-e-confluence-src-block)
                     (strike-through . org-e-confluence-strike-through)
                     (table . org-e-confluence-table)
@@ -51,7 +52,7 @@
 
 (defun org-e-confluence-headline (headline contents info)
   (let ((low-level-rank (org-export-low-level-p headline info))
-        (text (org-export-data (org-element-property :title headline) 
+        (text (org-export-data (org-element-property :title headline)
                                info))
         (level (org-export-get-relative-level headline info)))
     ;; Else: Standard headline.
@@ -61,8 +62,16 @@
 
 (defun org-e-confluence-link (link desc info)
   (let ((raw-link (org-element-property :raw-link link)))
-    (if (not (org-string-nw-p desc)) (format "[%s]" raw-link)
-      (format "[%s|%s]" desc raw-link))))
+    (concat "["
+            (when (org-string-nw-p desc) (format "%s|" desc))
+            (cond
+             ((string-match "^confluence:" raw-link)
+              (replace-regexp-in-string ".+?:" "" raw-link))
+             (t
+              raw-link))
+            "]")))
+(defun org-e-confluence-section (section contents info)
+  contents)
 
 (defun org-e-confluence-src-block (src-block contents info)
   ;; FIXME: provide a user-controlled variable for theme

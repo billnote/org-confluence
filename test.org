@@ -17,8 +17,11 @@
    2. bar
    3. baz
 * Headline 2
-** Link
-   [[org-mode.org][org-mode]]
+** External links
+   [[http://org-mode.org][org-mode]]
+   [[http://gnu.org][GNU]]
+** Internal link
+   [[confluence:OtherPage][Confluence page]]
 ** Table
    | field 1 | field 2 | field 3 |
    |---------+---------+---------|
