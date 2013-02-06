@@ -14,6 +14,7 @@ section. Development will therefore occur in Org-mode's git
 repository:
 
   clone URL : git://orgmode.org/org-mode.git
+
   cgit      : http://orgmode.org/cgit.cgi/org-mode.git/
 
 For everyone's convenience, I will try to keep this GitHub repository
