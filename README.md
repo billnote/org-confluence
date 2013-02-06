@@ -5,6 +5,20 @@ Forked from https://github.com/hgschmie/org-confluence, which provided
 inspiration to move this code to the new org-export.el shipped with
 org-mode 7.9.2.
 
+Inclusion in upstream org-mode
+------------------------------
+
+As of 15/12/2013 (commit e77f26e121bca79b400e60fedd5276629319bf64),
+org-e-confluence-export-as-confluence is part of Org-mode's contrib
+section. Development will therefore occur in Org-mode's git
+repository:
+
+  clone URL : git://orgmode.org/org-mode.git
+  cgit      : http://orgmode.org/cgit.cgi/org-mode.git/
+
+For everyone's convenience, I will try to keep this GitHub repository
+in sync with the development done in org-mode's tree.
+
 Installation
 ------------
 
