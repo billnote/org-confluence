@@ -2,14 +2,14 @@ Org-Mode to Confluence exporter
 ===============================
 
 Forked from https://github.com/hgschmie/org-confluence, which provided
-inspiration to move this code to the new org-export.el shipped with
-org-mode 7.9.2.
+inspiration to move this code to the new org-export.el that started
+shipping with org-mode 7.9.2.
 
 Inclusion in upstream org-mode
 ------------------------------
 
 As of 15/12/2013 (commit e77f26e121bca79b400e60fedd5276629319bf64),
-org-e-confluence-export-as-confluence is part of Org-mode's contrib
+org-confluence-export-as-confluence is part of Org-mode's contrib
 section. Development will therefore occur in Org-mode's git
 repository:
 
@@ -23,21 +23,21 @@ in sync with the development done in org-mode's tree.
 Installation
 ------------
 
-Get a release of org-mode >= 7.9.2, or the latest one from
+Get a release of org-mode >= 8.0.0, or the latest one from
 git://orgmode.org/org-mode.git.
 
-Install it and make sure that your emacs has access to the
-org-export.el file that's part of org-mode's contrib section.
+Install it and make sure that your emacs has access to the ox.el file
+that's part of org-mode.
 
 Copy org-confluence.el onto the load path of the emacs installation.
 
 Add
 
-  (require 'org-confluence)
+  (require 'ox-confluence)
 
 to the .emacs startup file.
 
-If all went well, the command M-x org-e-confluence-export-as-confluence 
+If all went well, the command M-x org-confluence-export-as-confluence 
 should write a buffer with a confluence styled export.
 
 What it does
